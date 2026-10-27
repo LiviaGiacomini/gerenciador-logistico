@@ -1,22 +1,11 @@
 
 CREATE DATABASE IF NOT EXISTS gerenciador_logistico
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_general_ci;
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_general_ci;
 
 USE gerenciador_logistico;
 
-SET FOREIGN_KEY_CHECKS = 0;
-
-DROP TABLE IF EXISTS frete_produtos;
-DROP TABLE IF EXISTS fretes;
-DROP TABLE IF EXISTS produtos;
-DROP TABLE IF EXISTS enderecos;
-DROP TABLE IF EXISTS transportadores;
-DROP TABLE IF EXISTS usuarios;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
-CREATE TABLE enderecos (
+CREATE TABLE IF NOT EXISTS enderecos (
     id INT NOT NULL AUTO_INCREMENT,
     nome VARCHAR(150) NOT NULL,
     cep VARCHAR(10) DEFAULT NULL,
@@ -30,7 +19,7 @@ CREATE TABLE enderecos (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE produtos (
+CREATE TABLE IF NOT EXISTS produtos (
     id INT NOT NULL AUTO_INCREMENT,
     nome VARCHAR(150) NOT NULL,
     descricao TEXT DEFAULT NULL,
@@ -42,7 +31,7 @@ CREATE TABLE produtos (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE transportadores (
+CREATE TABLE IF NOT EXISTS transportadores (
     id INT NOT NULL AUTO_INCREMENT,
     nome VARCHAR(150) NOT NULL,
     cnpj VARCHAR(18) DEFAULT NULL,
@@ -52,7 +41,7 @@ CREATE TABLE transportadores (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE fretes (
+CREATE TABLE IF NOT EXISTS fretes (
     id INT NOT NULL AUTO_INCREMENT,
     produto_id INT NOT NULL,
     origem_id INT NOT NULL,
@@ -75,7 +64,7 @@ CREATE TABLE fretes (
     CONSTRAINT fretes_ibfk_4 FOREIGN KEY (transportador_id) REFERENCES transportadores (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE frete_produtos (
+CREATE TABLE IF NOT EXISTS frete_produtos (
     id INT NOT NULL AUTO_INCREMENT,
     frete_id INT NOT NULL,
     produto_id INT NOT NULL,
@@ -87,7 +76,7 @@ CREATE TABLE frete_produtos (
     CONSTRAINT frete_produtos_ibfk_2 FOREIGN KEY (produto_id) REFERENCES produtos (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
     id INT NOT NULL AUTO_INCREMENT,
     nome VARCHAR(150) NOT NULL,
     email VARCHAR(150) NOT NULL,
@@ -96,3 +85,4 @@ CREATE TABLE usuarios (
     PRIMARY KEY (id),
     UNIQUE KEY email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
