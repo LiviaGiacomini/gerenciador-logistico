@@ -33,7 +33,7 @@ O sistema permite cadastrar e editar produtos, endereços e transportadores, al�
 2. Inicie os serviços Apache e MySQL.
 3. Coloque a pasta `gerenciador_logistico` dentro de `C:\xampp\htdocs`.
 4. Crie o banco de dados `gerenciador_logistico` no phpMyAdmin.
-5. Crie as tabelas necessárias e seus relacionamentos.
+5. No phpMyAdmin, selecione o banco de dados gerenciador_logistico, clique em Importar e envie o arquivo banco.sql.
 6. Confira as configurações de conexão no arquivo `conexao.php`.
 7. Acesse `http://localhost/gerenciador_logistico/`.
 
