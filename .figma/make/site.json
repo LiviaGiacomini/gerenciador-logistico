@@ -1,0 +1,10 @@
+{
+  "description": "Gerencie produtos, endereços, transportadores, fretes e relatórios em um painel logístico intuitivo, ideal para organizar operações e atividades acadêmicas.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
