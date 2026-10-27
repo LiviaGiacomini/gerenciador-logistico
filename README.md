@@ -32,10 +32,13 @@ O sistema permite cadastrar e editar produtos, endereços e transportadores, al�
 1. Instale o XAMPP.
 2. Inicie os serviços Apache e MySQL.
 3. Coloque a pasta `gerenciador_logistico` dentro de `C:\xampp\htdocs`.
-4. Crie o banco de dados `gerenciador_logistico` no phpMyAdmin.
-5. No phpMyAdmin, selecione o banco de dados gerenciador_logistico, clique em Importar e envie o arquivo banco.sql.
-6. Confira as configurações de conexão no arquivo `conexao.php`.
-7. Acesse `http://localhost/gerenciador_logistico/`.
+4. Abra o phpMyAdmin em `http://localhost/phpmyadmin`.
+5. Crie um banco de dados vazio chamado `gerenciador_logistico`.
+6. Selecione esse banco vazio, clique em **Importar** e envie o arquivo `banco.sql`.
+7. Confira as configurações de conexão no arquivo `conexao.php`.
+8. Acesse `http://localhost/gerenciador_logistico/`.
+
+**Importante:** o arquivo `banco.sql` cria as tabelas que ainda não existem. Ele não apaga tabelas existentes, mas também não corrige automaticamente a estrutura de tabelas já criadas. Para uma instalação limpa, utilize um banco de dados vazio.
 
 ## Projeto acadêmico
 
