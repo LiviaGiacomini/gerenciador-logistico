@@ -4,7 +4,7 @@
 
 O Gerenciador Logístico é um sistema web desenvolvido como projeto acadêmico da disciplina Fundamentos de Programação para Internet, da UNIPAR EAD.
 
-O sistema permite cadastrar e editar produtos, endereços e transportadores, além de registrar fretes com múltiplos produtos e gerar relatórios por data.
+O sistema permite cadastrar e editar produtos, endereços e transportadores, registrar fretes com múltiplos produtos e gerar relatórios por data.
 
 ## Funcionalidades
 
@@ -34,11 +34,11 @@ O sistema permite cadastrar e editar produtos, endereços e transportadores, al�
 3. Coloque a pasta `gerenciador_logistico` dentro de `C:\xampp\htdocs`.
 4. Abra o phpMyAdmin em `http://localhost/phpmyadmin`.
 5. Crie um banco de dados vazio chamado `gerenciador_logistico`.
-6. Selecione esse banco vazio, clique em **Importar** e envie o arquivo `banco.sql`.
+6. Selecione esse banco vazio, clique em **Importar** e envie o arquivo `database/banco.sql`.
 7. Confira as configurações de conexão no arquivo `conexao.php`.
 8. Acesse `http://localhost/gerenciador_logistico/`.
 
-**Importante:** o arquivo `banco.sql` cria as tabelas que ainda não existem. Ele não apaga tabelas existentes, mas também não corrige automaticamente a estrutura de tabelas já criadas. Para uma instalação limpa, utilize um banco de dados vazio.
+**Importante:** o arquivo `database/banco.sql` cria as tabelas que ainda não existem. Ele não apaga tabelas existentes, mas também não corrige automaticamente a estrutura de tabelas já criadas. Para uma instalação limpa, utilize um banco de dados vazio.
 
 ## Projeto acadêmico
 
