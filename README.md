@@ -30,12 +30,13 @@ O repositório também contém um protótipo visual desenvolvido com React e Typ
 - Tailwind CSS
 - Vite
 - Node.js e npm
+- pnpm
 - XAMPP
 - Git e GitHub
 
 ## Estrutura de pastas e arquivos
 
-O repositório contém o sistema web em PHP e o protótipo visual desenvolvido com React e TypeScript.
+O repositório contém o sistema web desenvolvido em PHP e o protótipo visual desenvolvido com React e TypeScript.
 
 ```text
 gerenciador_logistico/
@@ -60,6 +61,7 @@ gerenciador_logistico/
 │   ├── main.tsx
 │   └── vite-env.d.ts
 ├── .gitignore
+├── .mise.toml
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── baixar_relatorio.php
@@ -79,14 +81,16 @@ gerenciador_logistico/
 └── README.md
 ```
 
-*Observação: a estrutura apresenta os principais arquivos do projeto. A pasta `.figma/make/` contém arquivos auxiliares de configuração do ambiente Figma Make.*
+*Observação: a estrutura apresenta os principais arquivos do projeto. A pasta `.figma/make/` contém arquivos auxiliares de configuração utilizados pelo ambiente Figma Make.*
 
 ### Descrição dos principais diretórios e arquivos
 
 - `database/`: contém o arquivo SQL utilizado para criar as tabelas do banco de dados.
 - `public/`: contém arquivos públicos utilizados pelo protótipo visual.
 - `src/`: contém os arquivos-fonte do protótipo desenvolvido com React e TypeScript.
-- `.figma/make/`: contém arquivos auxiliares de configuração utilizados pelo ambiente Figma Make.
+- `.figma/make/`: contém arquivos auxiliares de configuração do ambiente Figma Make.
+- `.mise.toml`: define as versões das ferramentas de desenvolvimento utilizadas pelo projeto, conforme a configuração do arquivo.
+- `AGENTS.md` e `CLAUDE.md`: arquivos relacionados a instruções auxiliares de desenvolvimento.
 - `conexao.php`: configura a conexão do sistema com o banco de dados MySQL.
 - `index.php`: apresenta a página inicial do sistema PHP.
 - `produtos.php`: gerencia os produtos cadastrados.
@@ -98,9 +102,10 @@ gerenciador_logistico/
 - `database/banco.sql`: contém os comandos SQL para criar as tabelas necessárias ao sistema.
 - `index.html`: contém a estrutura HTML inicial do protótipo React.
 - `package.json`: define as dependências e os comandos disponíveis para executar o protótipo.
-- `package-lock.json` e `pnpm-lock.yaml`: registram informações sobre as dependências dos gerenciadores de pacotes.
-- `vite.config.ts`: configura o Vite, o React, o Tailwind CSS e as configurações específicas do Figma Make.
-- `AGENTS.md` e `CLAUDE.md`: arquivos relacionados a instruções e configurações auxiliares de desenvolvimento.
+- `package-lock.json` e `pnpm-lock.yaml`: registram informações sobre as dependências utilizadas pelos gerenciadores de pacotes npm e pnpm.
+- `vite.config.ts`: configura o Vite, o React, o Tailwind CSS e os recursos específicos do Figma Make.
+- `tsconfig.json`: contém as configurações do TypeScript.
+- `.gitignore`: define arquivos e pastas que não devem ser incluídos no controle de versão.
 - `README.md`: apresenta a descrição do projeto, suas funcionalidades e as instruções de instalação.
 
 ## Como executar o projeto PHP
