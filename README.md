@@ -36,8 +36,7 @@ O projeto está organizado da seguinte forma:
 ```text
 gerenciador_logistico/
 ├── database/
-│   ├── banco.sql
-│   └── banco_backup.sql
+│   └── banco.sql
 ├── public/
 │   └── favicon.svg
 ├── src/
@@ -64,7 +63,7 @@ gerenciador_logistico/
 
 ### Descrição dos principais diretórios e arquivos
 
-- `database/`: contém os arquivos SQL utilizados para criar as tabelas e manter uma cópia de segurança do banco de dados.
+- `database/`: contém o arquivo SQL utilizado para criar as tabelas necessárias ao sistema.
 - `public/`: contém o ícone utilizado pelo protótipo visual.
 - `src/`: contém os arquivos-fonte do protótipo visual desenvolvido com React e TypeScript.
 - `conexao.php`: configura a conexão do sistema com o banco de dados MySQL.
