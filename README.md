@@ -6,6 +6,8 @@ O Gerenciador Logístico é um sistema web desenvolvido como projeto acadêmico 
 
 O sistema permite cadastrar e editar produtos, endereços e transportadores, registrar fretes com múltiplos produtos e gerar relatórios por data.
 
+O repositório também contém um protótipo visual desenvolvido com React e TypeScript, utilizado como referência para a interface do sistema.
+
 ## Funcionalidades
 
 - Cadastro, listagem e edição de produtos.
@@ -25,16 +27,29 @@ O sistema permite cadastrar e editar produtos, endereços e transportadores, reg
 - JavaScript
 - Bootstrap
 - React e TypeScript (protótipo visual)
+- Tailwind CSS
 - Vite
+- Node.js e npm
 - XAMPP
 - Git e GitHub
 
 ## Estrutura de pastas e arquivos
 
-O projeto está organizado da seguinte forma:
+O repositório contém o sistema web em PHP e o protótipo visual desenvolvido com React e TypeScript.
 
 ```text
 gerenciador_logistico/
+├── .figma/
+│   └── make/
+│       ├── analyze-routes
+│       ├── deploy
+│       ├── deploy-preview
+│       ├── dev
+│       ├── dev.json
+│       ├── format
+│       ├── install
+│       ├── langserver
+│       └── site.json
 ├── database/
 │   └── banco.sql
 ├── public/
@@ -45,6 +60,8 @@ gerenciador_logistico/
 │   ├── main.tsx
 │   └── vite-env.d.ts
 ├── .gitignore
+├── AGENTS.md
+├── CLAUDE.md
 ├── baixar_relatorio.php
 ├── conexao.php
 ├── enderecos.php
@@ -53,6 +70,7 @@ gerenciador_logistico/
 ├── index.php
 ├── package.json
 ├── package-lock.json
+├── pnpm-lock.yaml
 ├── produtos.php
 ├── relatorios.php
 ├── transportadores.php
@@ -61,13 +79,16 @@ gerenciador_logistico/
 └── README.md
 ```
 
+*Observação: a estrutura apresenta os principais arquivos do projeto. A pasta `.figma/make/` contém arquivos auxiliares de configuração do ambiente Figma Make.*
+
 ### Descrição dos principais diretórios e arquivos
 
-- `database/`: contém o arquivo SQL utilizado para criar as tabelas necessárias ao sistema.
-- `public/`: contém o ícone utilizado pelo protótipo visual.
-- `src/`: contém os arquivos-fonte do protótipo visual desenvolvido com React e TypeScript.
+- `database/`: contém o arquivo SQL utilizado para criar as tabelas do banco de dados.
+- `public/`: contém arquivos públicos utilizados pelo protótipo visual.
+- `src/`: contém os arquivos-fonte do protótipo desenvolvido com React e TypeScript.
+- `.figma/make/`: contém arquivos auxiliares de configuração utilizados pelo ambiente Figma Make.
 - `conexao.php`: configura a conexão do sistema com o banco de dados MySQL.
-- `index.php`: apresenta a página inicial do sistema.
+- `index.php`: apresenta a página inicial do sistema PHP.
 - `produtos.php`: gerencia os produtos cadastrados.
 - `enderecos.php`: gerencia os endereços de origem e destino.
 - `transportadores.php`: gerencia os transportadores.
@@ -75,6 +96,11 @@ gerenciador_logistico/
 - `relatorios.php`: permite consultar relatórios de fretes por data.
 - `baixar_relatorio.php`: permite exportar relatórios em formato CSV.
 - `database/banco.sql`: contém os comandos SQL para criar as tabelas necessárias ao sistema.
+- `index.html`: contém a estrutura HTML inicial do protótipo React.
+- `package.json`: define as dependências e os comandos disponíveis para executar o protótipo.
+- `package-lock.json` e `pnpm-lock.yaml`: registram informações sobre as dependências dos gerenciadores de pacotes.
+- `vite.config.ts`: configura o Vite, o React, o Tailwind CSS e as configurações específicas do Figma Make.
+- `AGENTS.md` e `CLAUDE.md`: arquivos relacionados a instruções e configurações auxiliares de desenvolvimento.
 - `README.md`: apresenta a descrição do projeto, suas funcionalidades e as instruções de instalação.
 
 ## Como executar o projeto PHP
@@ -88,11 +114,11 @@ gerenciador_logistico/
 7. Confira as configurações de conexão com o banco de dados no arquivo `conexao.php`.
 8. Acesse o sistema pelo endereço `http://localhost/gerenciador_logistico/`.
 
-**Importante:** o arquivo `database/banco.sql` cria as tabelas que ainda não existem. Ele não apaga tabelas existentes, mas também não corrige automaticamente a estrutura de tabelas já criadas. Para uma instalação limpa, utilize um banco de dados vazio.
+**Importante:** o arquivo `database/banco.sql` cria as tabelas que ainda não existem. Ele não apaga tabelas existentes nem corrige automaticamente a estrutura de tabelas já criadas. Para uma instalação limpa, utilize um banco de dados vazio.
 
 ## Como executar o protótipo visual
 
-O projeto também contém um protótipo visual desenvolvido com React, TypeScript e Vite.
+O projeto também contém um protótipo visual desenvolvido com React, TypeScript, Vite e Tailwind CSS.
 
 Para executar o protótipo:
 
@@ -102,7 +128,7 @@ Para executar o protótipo:
 4. Execute o comando `npm run dev`.
 5. Acesse no navegador o endereço indicado pelo terminal.
 
-O protótipo visual é separado do sistema PHP conectado ao banco de dados MySQL.
+O protótipo visual é separado do sistema PHP conectado ao banco de dados MySQL. A configuração do Vite utiliza arquivos auxiliares da pasta `.figma/make/`, que devem ser mantidos para preservar essa configuração.
 
 ## Projeto acadêmico
 
