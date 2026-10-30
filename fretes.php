@@ -1,95 +1,35 @@
 
 <?php
-require_once "conexao.php";
+session_start();
 
-$mensagem = "";
+require_once __DIR__ . "/includes/conexao.php";
+
+$mensagem = $_SESSION["frete_mensagem"] ?? "";
+$tipoMensagem = $_SESSION["frete_tipo"] ?? "danger";
+$dadosFormulario = $_SESSION["frete_dados"] ?? [];
+
+unset(
+    $_SESSION["frete_mensagem"],
+    $_SESSION["frete_tipo"],
+    $_SESSION["frete_dados"]
+);
 
 function escaparFrete($valor) {
-    return htmlspecialchars((string)($valor ?? ""), ENT_QUOTES, "UTF-8");
+    return htmlspecialchars((string) ($valor ?? ""), ENT_QUOTES, "UTF-8");
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $produtosSelecionados = $_POST["produtos"] ?? [];
-    $quantidades = $_POST["quantidades"] ?? [];
-    $origem_id = (int)($_POST["origem_id"] ?? 0);
-    $destino_id = (int)($_POST["destino_id"] ?? 0);
-    $transportador_id = (int)($_POST["transportador_id"] ?? 0);
-    $data_envio = ($_POST["data_envio"] ?? "") ?: null;
-    $data_entrega = ($_POST["data_entrega"] ?? "") ?: null;
-    $valor = str_replace(",", ".", $_POST["valor"] ?? "0");
-    $status = $_POST["status"] ?? "Pendente";
-    $observacoes = trim($_POST["observacoes"] ?? "");
+$produtosSelecionados = $dadosFormulario["produtos"] ?? [];
+$quantidadesFormulario = $dadosFormulario["quantidades"] ?? [];
 
-    $statusValidos = ["Pendente", "Em trânsito", "Entregue", "Cancelado"];
-    $produtosValidos = [];
+$origemSelecionada = (int) ($dadosFormulario["origem_id"] ?? 0);
+$destinoSelecionado = (int) ($dadosFormulario["destino_id"] ?? 0);
+$transportadorSelecionado = (int) ($dadosFormulario["transportador_id"] ?? 0);
 
-    foreach ($produtosSelecionados as $produtoId) {
-        $produtoId = (int)$produtoId;
-        $quantidade = (int)($quantidades[$produtoId] ?? 1);
-
-        if ($produtoId > 0 && $quantidade > 0) {
-            $produtosValidos[$produtoId] = $quantidade;
-        }
-    }
-
-    if (count($produtosValidos) === 0 || $origem_id <= 0 ||
-        $destino_id <= 0 || $transportador_id <= 0) {
-        $mensagem = "Selecione pelo menos um produto, a origem, o destino e a transportadora.";
-    } elseif ($origem_id === $destino_id) {
-        $mensagem = "A origem e o destino precisam ser diferentes.";
-    } elseif (!is_numeric($valor) || (float)$valor < 0) {
-        $mensagem = "Informe um valor de frete válido.";
-    } elseif (!in_array($status, $statusValidos, true)) {
-        $mensagem = "Selecione um status válido.";
-    } elseif ($data_envio && $data_entrega && $data_entrega < $data_envio) {
-        $mensagem = "A data de entrega não pode ser anterior à data de envio.";
-    } else {
-        try {
-            $conexao->beginTransaction();
-
-            // O primeiro produto também é salvo na coluna antiga
-            // para manter compatibilidade com os fretes já existentes.
-            $primeiroProduto = (int)array_key_first($produtosValidos);
-
-            $sql = "INSERT INTO fretes
-                    (produto_id, origem_id, destino_id, transportador_id,
-                     data_envio, data_entrega, valor, status, observacoes)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-            $consulta = $conexao->prepare($sql);
-            $consulta->execute([
-                $primeiroProduto, $origem_id, $destino_id, $transportador_id,
-                $data_envio, $data_entrega, $valor, $status,
-                $observacoes ?: null
-            ]);
-
-            $freteId = (int)$conexao->lastInsertId();
-
-            $sqlProduto = "INSERT INTO frete_produtos
-                           (frete_id, produto_id, quantidade)
-                           VALUES (?, ?, ?)";
-            $consultaProduto = $conexao->prepare($sqlProduto);
-
-            foreach ($produtosValidos as $produtoId => $quantidade) {
-                $consultaProduto->execute([$freteId, $produtoId, $quantidade]);
-            }
-
-            $conexao->commit();
-
-            header("Location: fretes.php?sucesso=1");
-            exit;
-        } catch (Throwable $e) {
-            if ($conexao->inTransaction()) {
-                $conexao->rollBack();
-            }
-            $mensagem = "Não foi possível cadastrar o frete. Verifique se os dados estão corretos.";
-        }
-    }
-}
-
-if (isset($_GET["sucesso"])) {
-    $mensagem = "Frete cadastrado com sucesso!";
-}
+$dataEnvioFormulario = $dadosFormulario["data_envio"] ?? "";
+$dataEntregaFormulario = $dadosFormulario["data_entrega"] ?? "";
+$valorFormulario = $dadosFormulario["valor"] ?? "0.00";
+$statusFormulario = $dadosFormulario["status"] ?? "Pendente";
+$observacoesFormulario = $dadosFormulario["observacoes"] ?? "";
 
 $produtos = $conexao->query(
     "SELECT id, nome FROM produtos ORDER BY nome"
@@ -119,10 +59,12 @@ $sqlFretes = "SELECT
 $fretes = $conexao->query($sqlFretes)->fetchAll(PDO::FETCH_ASSOC);
 
 $produtosPorFrete = [];
+
 $sqlItens = "SELECT fp.frete_id, p.nome, fp.quantidade
              FROM frete_produtos fp
              INNER JOIN produtos p ON p.id = fp.produto_id
              ORDER BY p.nome";
+
 $itens = $conexao->query($sqlItens)->fetchAll(PDO::FETCH_ASSOC);
 
 foreach ($itens as $item) {
@@ -130,17 +72,19 @@ foreach ($itens as $item) {
         $item["nome"] . " (qtd.: " . $item["quantidade"] . ")";
 }
 
-// Compatibilidade para fretes antigos que ainda não tenham itens na tabela nova.
+// Compatibilidade com fretes antigos sem itens na tabela nova.
 foreach ($fretes as $frete) {
     if (empty($produtosPorFrete[$frete["id"]])) {
         $consultaAntigo = $conexao->prepare(
             "SELECT nome FROM produtos WHERE id = ?"
         );
+
         $consultaAntigo->execute([$frete["produto_id"]]);
         $nomeAntigo = $consultaAntigo->fetchColumn();
 
         if ($nomeAntigo) {
-            $produtosPorFrete[$frete["id"]][] = $nomeAntigo . " (qtd.: 1)";
+            $produtosPorFrete[$frete["id"]][] =
+                $nomeAntigo . " (qtd.: 1)";
         }
     }
 }
@@ -148,28 +92,17 @@ foreach ($fretes as $frete) {
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Fretes | Gerenciador Logístico</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-body { background: #f3f6fa; color: #253247; }
-header { background: #17365c; color: white; padding: 22px 30px; }
-header p { color: #d7e4f4; margin-bottom: 0; }
-nav { background: white; border-bottom: 1px solid #dfe5ed; }
-nav a { color: #344761; text-decoration: none; padding: 10px 13px; display: inline-block; border-radius: 6px; }
-nav a:hover, nav a.ativo { background: #e5eef9; color: #17365c; }
-main { max-width: 1200px; margin: 30px auto; padding: 0 22px; }
-.painel { background: white; border: 1px solid #e1e7ef; border-radius: 10px; padding: 24px; margin-bottom: 24px; }
-.btn-principal { background: #17365c; color: white; }
-.btn-principal:hover { background: #245080; color: white; }
-.lista-produtos { border: 1px solid #dce3ec; border-radius: 8px; padding: 14px; }
-.item-produto { display: grid; grid-template-columns: 1fr 110px; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid #edf0f4; }
-.item-produto:last-child { border-bottom: 0; }
-@media (max-width: 600px) { .item-produto { grid-template-columns: 1fr; } }
-</style>
+<link rel="stylesheet" href="assets/css/fretes.css">
 </head>
+
 <body>
 
 <header>
@@ -187,136 +120,337 @@ main { max-width: 1200px; margin: 30px auto; padding: 0 22px; }
 </nav>
 
 <main>
+
 <section class="painel">
+
     <h2 class="h4 mb-4">Cadastrar frete</h2>
 
     <?php if ($mensagem !== ""): ?>
-        <div class="alert <?= isset($_GET["sucesso"]) ? "alert-success" : "alert-danger" ?>">
+        <div class="alert <?= $tipoMensagem === "success" ? "alert-success" : "alert-danger" ?>">
             <?= escaparFrete($mensagem) ?>
         </div>
     <?php endif; ?>
 
-    <form method="POST" action="fretes.php">
+    <form method="POST" action="processa/salvar_frete.php">
+
         <div class="row g-3">
 
             <div class="col-12">
-                <label class="form-label">Produtos e quantidades *</label>
+
+                <label class="form-label">
+                    Produtos e quantidades *
+                </label>
+
                 <div class="lista-produtos">
+
                     <?php if (!$produtos): ?>
-                        <p class="mb-0">Cadastre pelo menos um produto antes de criar um frete.</p>
+
+                        <p class="mb-0">
+                            Cadastre pelo menos um produto antes de criar um frete.
+                        </p>
+
                     <?php else: ?>
+
                         <?php foreach ($produtos as $produto): ?>
+
+                            <?php
+                            $produtoId = (int) $produto["id"];
+                            $produtoMarcado = in_array(
+                                $produtoId,
+                                array_map("intval", (array) $produtosSelecionados),
+                                true
+                            );
+                            ?>
+
                             <div class="item-produto">
+
                                 <div class="form-check">
-                                    <input class="form-check-input produto-check"
-                                           type="checkbox"
-                                           name="produtos[]"
-                                           value="<?= (int)$produto["id"] ?>"
-                                           id="produto_<?= (int)$produto["id"] ?>">
-                                    <label class="form-check-label"
-                                           for="produto_<?= (int)$produto["id"] ?>">
+
+                                    <input
+                                        class="form-check-input produto-check"
+                                        type="checkbox"
+                                        name="produtos[]"
+                                        value="<?= $produtoId ?>"
+                                        id="produto_<?= $produtoId ?>"
+                                        <?= $produtoMarcado ? "checked" : "" ?>
+                                    >
+
+                                    <label
+                                        class="form-check-label"
+                                        for="produto_<?= $produtoId ?>"
+                                    >
                                         <?= escaparFrete($produto["nome"]) ?>
                                     </label>
+
                                 </div>
+
                                 <div>
-                                    <label class="form-label small"
-                                           for="qtd_<?= (int)$produto["id"] ?>">Quantidade</label>
-                                    <input class="form-control form-control-sm"
-                                           type="number"
-                                           name="quantidades[<?= (int)$produto["id"] ?>]"
-                                           id="qtd_<?= (int)$produto["id"] ?>"
-                                           value="1" min="1" step="1">
+
+                                    <label
+                                        class="form-label small"
+                                        for="qtd_<?= $produtoId ?>"
+                                    >
+                                        Quantidade
+                                    </label>
+
+                                    <input
+                                        class="form-control form-control-sm"
+                                        type="number"
+                                        name="quantidades[<?= $produtoId ?>]"
+                                        id="qtd_<?= $produtoId ?>"
+                                        value="<?= escaparFrete($quantidadesFormulario[$produtoId] ?? 1) ?>"
+                                        min="1"
+                                        step="1"
+                                    >
+
                                 </div>
+
                             </div>
+
                         <?php endforeach; ?>
+
                     <?php endif; ?>
+
                 </div>
-                <small class="text-secondary">Marque um ou mais produtos e informe a quantidade de cada um.</small>
+
+                <small class="text-secondary">
+                    Marque um ou mais produtos e informe a quantidade de cada um.
+                </small>
+
             </div>
 
             <div class="col-md-6">
-                <label for="transportador_id" class="form-label">Transportadora *</label>
-                <select class="form-select" id="transportador_id" name="transportador_id" required>
+
+                <label for="transportador_id" class="form-label">
+                    Transportadora *
+                </label>
+
+                <select
+                    class="form-select"
+                    id="transportador_id"
+                    name="transportador_id"
+                    required
+                >
+
                     <option value="">Selecione uma transportadora</option>
+
                     <?php foreach ($transportadores as $transportador): ?>
-                        <option value="<?= (int)$transportador["id"] ?>">
+
+                        <option
+                            value="<?= (int) $transportador["id"] ?>"
+                            <?= $transportadorSelecionado === (int) $transportador["id"] ? "selected" : "" ?>
+                        >
                             <?= escaparFrete($transportador["nome"]) ?>
                         </option>
+
                     <?php endforeach; ?>
+
                 </select>
+
             </div>
 
             <div class="col-md-6">
-                <label for="origem_id" class="form-label">Endereço de origem *</label>
-                <select class="form-select" id="origem_id" name="origem_id" required>
+
+                <label for="origem_id" class="form-label">
+                    Endereço de origem *
+                </label>
+
+                <select
+                    class="form-select"
+                    id="origem_id"
+                    name="origem_id"
+                    required
+                >
+
                     <option value="">Selecione a origem</option>
+
                     <?php foreach ($enderecos as $endereco): ?>
-                        <option value="<?= (int)$endereco["id"] ?>">
-                            <?= escaparFrete($endereco["nome"] . " - " . $endereco["cidade"] . "/" . $endereco["estado"]) ?>
+
+                        <option
+                            value="<?= (int) $endereco["id"] ?>"
+                            <?= $origemSelecionada === (int) $endereco["id"] ? "selected" : "" ?>
+                        >
+                            <?= escaparFrete(
+                                $endereco["nome"] . " - " .
+                                $endereco["cidade"] . "/" .
+                                $endereco["estado"]
+                            ) ?>
                         </option>
+
                     <?php endforeach; ?>
+
                 </select>
+
             </div>
 
             <div class="col-md-6">
-                <label for="destino_id" class="form-label">Endereço de destino *</label>
-                <select class="form-select" id="destino_id" name="destino_id" required>
+
+                <label for="destino_id" class="form-label">
+                    Endereço de destino *
+                </label>
+
+                <select
+                    class="form-select"
+                    id="destino_id"
+                    name="destino_id"
+                    required
+                >
+
                     <option value="">Selecione o destino</option>
+
                     <?php foreach ($enderecos as $endereco): ?>
-                        <option value="<?= (int)$endereco["id"] ?>">
-                            <?= escaparFrete($endereco["nome"] . " - " . $endereco["cidade"] . "/" . $endereco["estado"]) ?>
+
+                        <option
+                            value="<?= (int) $endereco["id"] ?>"
+                            <?= $destinoSelecionado === (int) $endereco["id"] ? "selected" : "" ?>
+                        >
+                            <?= escaparFrete(
+                                $endereco["nome"] . " - " .
+                                $endereco["cidade"] . "/" .
+                                $endereco["estado"]
+                            ) ?>
                         </option>
+
                     <?php endforeach; ?>
+
                 </select>
+
             </div>
 
             <div class="col-md-6">
-                <label for="data_envio" class="form-label">Data de envio</label>
-                <input class="form-control" type="date" id="data_envio" name="data_envio">
+
+                <label for="data_envio" class="form-label">
+                    Data de envio
+                </label>
+
+                <input
+                    class="form-control"
+                    type="date"
+                    id="data_envio"
+                    name="data_envio"
+                    value="<?= escaparFrete($dataEnvioFormulario) ?>"
+                >
+
             </div>
 
             <div class="col-md-6">
-                <label for="data_entrega" class="form-label">Data prevista de entrega</label>
-                <input class="form-control" type="date" id="data_entrega" name="data_entrega">
+
+                <label for="data_entrega" class="form-label">
+                    Data prevista de entrega
+                </label>
+
+                <input
+                    class="form-control"
+                    type="date"
+                    id="data_entrega"
+                    name="data_entrega"
+                    value="<?= escaparFrete($dataEntregaFormulario) ?>"
+                >
+
             </div>
 
             <div class="col-md-6">
-                <label for="valor" class="form-label">Valor do frete (R$) *</label>
-                <input class="form-control" type="number" id="valor" name="valor"
-                       min="0" step="0.01" value="0.00" required>
+
+                <label for="valor" class="form-label">
+                    Valor do frete (R$) *
+                </label>
+
+                <input
+                    class="form-control"
+                    type="number"
+                    id="valor"
+                    name="valor"
+                    min="0"
+                    step="0.01"
+                    value="<?= escaparFrete($valorFormulario) ?>"
+                    required
+                >
+
             </div>
 
             <div class="col-md-6">
-                <label for="status" class="form-label">Status *</label>
-                <select class="form-select" id="status" name="status" required>
-                    <option value="Pendente">Pendente</option>
-                    <option value="Em trânsito">Em trânsito</option>
-                    <option value="Entregue">Entregue</option>
-                    <option value="Cancelado">Cancelado</option>
+
+                <label for="status" class="form-label">
+                    Status *
+                </label>
+
+                <select
+                    class="form-select"
+                    id="status"
+                    name="status"
+                    required
+                >
+
+                    <?php
+                    $statusOpcoes = [
+                        "Pendente",
+                        "Em trânsito",
+                        "Entregue",
+                        "Cancelado"
+                    ];
+                    ?>
+
+                    <?php foreach ($statusOpcoes as $statusOpcao): ?>
+
+                        <option
+                            value="<?= escaparFrete($statusOpcao) ?>"
+                            <?= $statusFormulario === $statusOpcao ? "selected" : "" ?>
+                        >
+                            <?= escaparFrete($statusOpcao) ?>
+                        </option>
+
+                    <?php endforeach; ?>
+
                 </select>
+
             </div>
 
             <div class="col-12">
-                <label for="observacoes" class="form-label">Observações</label>
-                <textarea class="form-control" id="observacoes" name="observacoes"
-                          rows="3" placeholder="Informações adicionais sobre o frete"></textarea>
+
+                <label for="observacoes" class="form-label">
+                    Observações
+                </label>
+
+                <textarea
+                    class="form-control"
+                    id="observacoes"
+                    name="observacoes"
+                    rows="3"
+                    placeholder="Informações adicionais sobre o frete"
+                ><?= escaparFrete($observacoesFormulario) ?></textarea>
+
             </div>
 
             <div class="col-12">
-                <button class="btn btn-principal" type="submit">Cadastrar frete</button>
+
+                <button class="btn btn-principal" type="submit">
+                    Cadastrar frete
+                </button>
+
             </div>
+
         </div>
+
     </form>
+
 </section>
 
 <section class="painel">
+
     <h2 class="h4 mb-3">Fretes cadastrados</h2>
 
     <?php if (count($fretes) === 0): ?>
-        <p class="text-secondary">Nenhum frete cadastrado ainda.</p>
+
+        <p class="text-secondary">
+            Nenhum frete cadastrado ainda.
+        </p>
+
     <?php else: ?>
+
         <div class="table-responsive">
+
             <table class="table table-hover align-middle">
+
                 <thead class="table-light">
                     <tr>
                         <th>ID</th>
@@ -330,54 +464,81 @@ main { max-width: 1200px; margin: 30px auto; padding: 0 22px; }
                         <th>Status</th>
                     </tr>
                 </thead>
+
                 <tbody>
+
                     <?php foreach ($fretes as $frete): ?>
+
                         <tr>
-                            <td><?= (int)$frete["id"] ?></td>
+
+                            <td><?= (int) $frete["id"] ?></td>
+
                             <td>
                                 <?php foreach (($produtosPorFrete[$frete["id"]] ?? []) as $nomeProduto): ?>
                                     <div><?= escaparFrete($nomeProduto) ?></div>
                                 <?php endforeach; ?>
                             </td>
-                            <td><?= escaparFrete($frete["origem_nome"] . " - " . $frete["origem_cidade"]) ?></td>
-                            <td><?= escaparFrete($frete["destino_nome"] . " - " . $frete["destino_cidade"]) ?></td>
-                            <td><?= escaparFrete($frete["transportador_nome"]) ?></td>
-                            <td><?= $frete["data_envio"] ? date("d/m/Y", strtotime($frete["data_envio"])) : "—" ?></td>
-                            <td><?= $frete["data_entrega"] ? date("d/m/Y", strtotime($frete["data_entrega"])) : "—" ?></td>
-                            <td>R$ <?= number_format((float)$frete["valor"], 2, ",", ".") ?></td>
-                            <td><?= escaparFrete($frete["status"]) ?></td>
+
+                            <td>
+                                <?= escaparFrete(
+                                    $frete["origem_nome"] . " - " .
+                                    $frete["origem_cidade"]
+                                ) ?>
+                            </td>
+
+                            <td>
+                                <?= escaparFrete(
+                                    $frete["destino_nome"] . " - " .
+                                    $frete["destino_cidade"]
+                                ) ?>
+                            </td>
+
+                            <td>
+                                <?= escaparFrete($frete["transportador_nome"]) ?>
+                            </td>
+
+                            <td>
+                                <?= $frete["data_envio"]
+                                    ? date("d/m/Y", strtotime($frete["data_envio"]))
+                                    : "—" ?>
+                            </td>
+
+                            <td>
+                                <?= $frete["data_entrega"]
+                                    ? date("d/m/Y", strtotime($frete["data_entrega"]))
+                                    : "—" ?>
+                            </td>
+
+                            <td>
+                                R$ <?= number_format(
+                                    (float) $frete["valor"],
+                                    2,
+                                    ",",
+                                    "."
+                                ) ?>
+                            </td>
+
+                            <td>
+                                <?= escaparFrete($frete["status"]) ?>
+                            </td>
+
                         </tr>
+
                     <?php endforeach; ?>
+
                 </tbody>
+
             </table>
+
         </div>
+
     <?php endif; ?>
+
 </section>
+
 </main>
 
+<script src="assets/js/fretes.js"></script>
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    const produtos = document.querySelectorAll(
-        'input[name="produtos[]"]'
-    );
-
-    produtos.forEach(function (produto) {
-        produto.addEventListener("change", function () {
-            const quantidade = document.querySelector(
-                'input[name="quantidades[' + produto.value + ']"]'
-            );
-
-            if (quantidade) {
-                quantidade.disabled = !produto.checked;
-
-                if (!produto.checked) {
-                    quantidade.value = 1;
-                }
-            }
-        });
-    });
-});
-</script>
 </body>
 </html>

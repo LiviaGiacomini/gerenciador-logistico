@@ -1,0 +1,59 @@
+
+body {
+    background: #f3f6fa;
+    color: #253247;
+}
+
+header {
+    background: #17365c;
+    color: white;
+    padding: 22px 30px;
+}
+
+header p {
+    color: #d7e4f4;
+    margin-bottom: 0;
+}
+
+nav {
+    background: white;
+    border-bottom: 1px solid #dfe5ed;
+}
+
+nav a {
+    color: #344761;
+    text-decoration: none;
+    padding: 10px 13px;
+    display: inline-block;
+    border-radius: 6px;
+}
+
+nav a:hover,
+nav a.ativo {
+    background: #e5eef9;
+    color: #17365c;
+}
+
+main {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 0 22px;
+}
+
+.painel {
+    background: white;
+    border: 1px solid #e1e7ef;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.btn-principal {
+    background: #17365c;
+    color: white;
+}
+
+.btn-principal:hover {
+    background: #245080;
+    color: white;
+}
